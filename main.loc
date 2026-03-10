@@ -1,0 +1,68 @@
+module map (*)
+
+import root
+
+--' A map with keys of type `a` and values of type `b`
+--' metavar: MAP
+type Map a b
+
+-- Serialization: maps are packed as a pair of parallel lists
+instance Packable ([a], [b]) (Map a b)
+
+-- Construction
+----------------
+
+emptyMap a b :: Map a b
+
+singleton a b :: a -> b -> Map a b
+
+fromList a b :: [(a, b)] -> Map a b
+
+toList a b :: Map a b -> [(a, b)]
+
+-- Query
+---------
+
+lookup a b :: a -> Map a b -> ?b
+
+member a b :: a -> Map a b -> Bool
+
+size a b :: Map a b -> Int
+
+-- Modify
+----------
+
+insert a b :: a -> b -> Map a b -> Map a b
+
+delete a b :: a -> Map a b -> Map a b
+
+-- Bulk access
+---------------
+
+keys a b :: Map a b -> [a]
+
+values a b :: Map a b -> [b]
+
+-- Combine
+-----------
+
+union a b :: Map a b -> Map a b -> Map a b
+
+unionWith a b :: (b -> b -> b) -> Map a b -> Map a b -> Map a b
+
+intersectionWith a b :: (b -> b -> b) -> Map a b -> Map a b -> Map a b
+
+difference a b :: Map a b -> Map a b -> Map a b
+
+-- Transform
+-------------
+
+mapValues a b c :: (b -> c) -> Map a b -> Map a c
+
+mapKeys a b c :: (a -> c) -> Map a b -> Map c b
+
+mapWithKey a b c :: (a -> b -> c) -> Map a b -> Map a c
+
+filterMap a b :: (a -> b -> Bool) -> Map a b -> Map a b
+
+foldWithKey a b c :: (c -> a -> b -> c) -> c -> Map a b -> c

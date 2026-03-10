@@ -1,0 +1,11 @@
+name: map
+version: 0.1.0
+homepage: https://github.com/morloclib/map
+synopsis: Map (dictionary) type and operations
+description: Associative container mapping keys to values with lookup, insertion, deletion, and set-theoretic operations.
+category: data
+license: MIT
+author: "Zebulun Arendsee"
+maintainer: "z@morloc.io"
+github: https://github.com/morloclib/map
+bug-reports: https://github.com/morloclib/map
