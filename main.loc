@@ -12,57 +12,57 @@ instance Packable ([a], [b]) (Map a b)
 -- Construction
 ----------------
 
-emptyMap a b :: Map a b
+emptyMap :: Map a b
 
-singleton a b :: a -> b -> Map a b
+singleton :: a -> b -> Map a b
 
-fromList a b :: [(a, b)] -> Map a b
+fromList :: [(a, b)] -> Map a b
 
-toList a b :: Map a b -> [(a, b)]
+toList :: Map a b -> [(a, b)]
 
 -- Query
 ---------
 
-lookup a b :: a -> Map a b -> ?b
+lookup :: a -> Map a b -> ?b
 
-member a b :: a -> Map a b -> Bool
+member :: a -> Map a b -> Bool
 
-size a b :: Map a b -> Int
+size :: Map a b -> Int
 
 -- Modify
 ----------
 
-insert a b :: a -> b -> Map a b -> Map a b
+insert :: a -> b -> Map a b -> Map a b
 
-delete a b :: a -> Map a b -> Map a b
+delete :: a -> Map a b -> Map a b
 
 -- Bulk access
 ---------------
 
-keys a b :: Map a b -> [a]
+keys :: Map a b -> [a]
 
-values a b :: Map a b -> [b]
+values :: Map a b -> [b]
 
 -- Combine
 -----------
 
-union a b :: Map a b -> Map a b -> Map a b
+union :: Map a b -> Map a b -> Map a b
 
-unionWith a b :: (b -> b -> b) -> Map a b -> Map a b -> Map a b
+unionWith :: (b -> b -> b) -> Map a b -> Map a b -> Map a b
 
-intersectionWith a b :: (b -> b -> b) -> Map a b -> Map a b -> Map a b
+intersectionWith :: (b -> b -> b) -> Map a b -> Map a b -> Map a b
 
-difference a b :: Map a b -> Map a b -> Map a b
+difference :: Map a b -> Map a b -> Map a b
 
 -- Transform
 -------------
 
-mapValues a b c :: (b -> c) -> Map a b -> Map a c
+mapValues :: (b -> c) -> Map a b -> Map a c
 
-mapKeys a b c :: (a -> c) -> Map a b -> Map c b
+mapKeys :: (a -> c) -> Map a b -> Map c b
 
-mapWithKey a b c :: (a -> b -> c) -> Map a b -> Map a c
+mapWithKey :: (a -> b -> c) -> Map a b -> Map a c
 
-filterMap a b :: (a -> b -> Bool) -> Map a b -> Map a b
+filterMap :: (a -> b -> Bool) -> Map a b -> Map a b
 
-foldWithKey a b c :: (c -> a -> b -> c) -> c -> Map a b -> c
+foldWithKey :: (c -> a -> b -> c) -> c -> Map a b -> c
