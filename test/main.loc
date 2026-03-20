@@ -1,0 +1,180 @@
+module map.test (test)
+
+import map
+import root
+
+type Py => Int = "int"
+type Py => Str = "str"
+type Py => Real = "float"
+type Py => Bool = "bool"
+type Py => Tuple2 a b = "tuple" a b
+type Py => Tuple3 a b c = "tuple" a b c
+type Py => List a = "list" a
+
+-------------------------------------------------------------------------------
+-- Test suite functions
+
+source Py from "map-test.py" ("testEqual", "printMsg", "printResult")
+testEqual
+    :: Str -- description of the test
+    -> a
+    -> a
+    -> (Int, Int) -- total number of tests and total fails
+    -> (Int, Int)
+printMsg :: Str -> a -> a
+printResult :: (Int, Int) -> (Int, Int)
+
+testGroup
+    :: Str
+    -> ((Int, Int) -> (Int, Int))
+    -> (Int, Int)
+    -> (Int, Int)
+testGroup msg tests = tests . printMsg msg
+
+passed :: (Int, Int) -> Bool
+passed t = 0 == (.0 t)
+
+test = runTests (0,0)
+
+-------------------------------------------------------------------------------
+-- Test suite
+
+runTests :: (Int, Int) -> Bool
+runTests =
+  ( passed
+  . printResult
+  . testGroup "Map With Key" testMapWithKey
+  . testGroup "Map Combine" testMapCombine
+  . testGroup "Map Transform" testMapTransform
+  . testGroup "Map Modify" testMapModify
+  . testGroup "Map Query" testMapQuery
+  . testGroup "Map Construction" testMapConstruction
+  )
+
+-------------------------------------------------------------------------------
+-- Construction
+
+testMapConstruction :: (Int, Int) -> (Int, Int)
+testMapConstruction =
+  ( -- emptyMap
+    testEqual "emptyMap keys" (keys (fromList ([] :: [(Str, Int)]))) ([] :: [Str])
+  . testEqual "emptyMap size" (size (fromList ([] :: [(Str, Int)]))) 0
+  -- singleton
+  . testEqual "singleton keys" (keys (singleton "a" 1)) ["a"]
+  . testEqual "singleton lookup" (lookup "a" (singleton "a" 42)) 42
+  . testEqual "singleton size" (size (singleton "a" 1)) 1
+  -- fromList / toList
+  . testEqual "fromList toList" (sort (toList (fromList [("b",2),("a",1)]))) [("a",1),("b",2)]
+  . testEqual "fromList empty" (toList (fromList ([] :: [(Str, Int)]))) ([] :: [(Str, Int)])
+  . testEqual "fromList single" (toList (fromList [("x",1)])) [("x",1)]
+  . testEqual "fromList duplicate key" (lookup "a" (fromList [("a",1),("a",2)])) 2
+  )
+
+-------------------------------------------------------------------------------
+-- Query
+
+testMapQuery :: (Int, Int) -> (Int, Int)
+testMapQuery =
+  ( -- lookup
+    testEqual "lookup found" (lookup "a" (fromList [("a",1),("b",2)])) 1
+  . testEqual "lookup found 2" (lookup "b" (fromList [("a",1),("b",2)])) 2
+  -- member
+  . testEqual "member found" (member "a" (fromList [("a",1),("b",2)])) True
+  . testEqual "member missing" (member "c" (fromList [("a",1),("b",2)])) False
+  . testEqual "member empty" (member "a" (fromList ([] :: [(Str, Int)]))) False
+  -- size
+  . testEqual "size empty" (size (fromList ([] :: [(Str, Int)]))) 0
+  . testEqual "size 1" (size (singleton "a" 1)) 1
+  . testEqual "size 2" (size (fromList [("a",1),("b",2)])) 2
+  . testEqual "size 3" (size (fromList [("a",1),("b",2),("c",3)])) 3
+  -- keys
+  . testEqual "keys" (sort (keys (fromList [("b",2),("a",1)]))) ["a","b"]
+  . testEqual "keys empty" (keys (fromList ([] :: [(Str, Int)]))) ([] :: [Str])
+  . testEqual "keys singleton" (keys (singleton "x" 1)) ["x"]
+  -- values
+  . testEqual "values" (sort (values (fromList [("a",1),("b",2)]))) [1,2]
+  . testEqual "values empty" (values (fromList ([] :: [(Str, Int)]))) ([] :: [Int])
+  . testEqual "values singleton" (values (singleton "x" 42)) [42]
+  )
+
+-------------------------------------------------------------------------------
+-- Modify
+
+testMapModify :: (Int, Int) -> (Int, Int)
+testMapModify =
+  ( -- insert
+    testEqual "insert new" (lookup "c" (insert "c" 3 (fromList [("a",1),("b",2)]))) 3
+  . testEqual "insert keys" (sort (keys (insert "c" 3 (fromList [("a",1),("b",2)])))) ["a","b","c"]
+  . testEqual "insert overwrite" (lookup "a" (insert "a" 99 (fromList [("a",1),("b",2)]))) 99
+  . testEqual "insert size" (size (insert "c" 3 (fromList [("a",1),("b",2)]))) 3
+  . testEqual "insert into empty" (lookup "a" (insert "a" 1 (fromList ([] :: [(Str, Int)])))) 1
+  -- delete
+  . testEqual "delete" (sort (keys (delete "a" (fromList [("a",1),("b",2)])))) ["b"]
+  . testEqual "delete missing" (sort (keys (delete "c" (fromList [("a",1),("b",2)])))) ["a","b"]
+  . testEqual "delete size" (size (delete "a" (fromList [("a",1),("b",2)]))) 1
+  . testEqual "delete to empty" (size (delete "a" (singleton "a" 1))) 0
+  -- insert then delete
+  . testEqual "insert-delete" (sort (keys (delete "c" (insert "c" 3 (fromList [("a",1),("b",2)]))))) ["a","b"]
+  -- delete then insert
+  . testEqual "delete-insert" (lookup "a" (insert "a" 99 (delete "a" (fromList [("a",1),("b",2)])))) 99
+  )
+
+-------------------------------------------------------------------------------
+-- Transform
+
+testMapTransform :: (Int, Int) -> (Int, Int)
+testMapTransform =
+  ( -- mapValues
+    testEqual "mapValues" (sort (values (mapValues (_ + 10) (fromList [("a",1),("b",2)])))) [11,12]
+  . testEqual "mapValues keys" (sort (keys (mapValues (_ + 1) (fromList [("x",1),("y",2)])))) ["x","y"]
+  . testEqual "mapValues empty" (size (mapValues (_ + 1) (fromList ([] :: [(Str, Int)])))) 0
+  -- mapKeys
+  . testEqual "mapKeys" (sort (keys (mapKeys (_ <> "x") (fromList [("a",1),("b",2)])))) ["ax","bx"]
+  . testEqual "mapKeys values" (sort (values (mapKeys (_ <> "x") (fromList [("a",1),("b",2)])))) [1,2]
+  -- filterMap
+  . testEqual "filterMap keep" (sort (keys (filterMap (\k v -> v > 1) (fromList [("a",1),("b",2),("c",3)])))) ["b","c"]
+  . testEqual "filterMap none" (sort (keys (filterMap (\k v -> v > 9) (fromList [("a",1),("b",2)])))) ([] :: [Str])
+  . testEqual "filterMap all" (sort (keys (filterMap (\k v -> v > 0) (fromList [("a",1),("b",2)])))) ["a","b"]
+  . testEqual "filterMap empty" (size (filterMap (\k v -> True) (fromList ([] :: [(Str, Int)])))) 0
+  )
+
+-------------------------------------------------------------------------------
+-- Combine
+
+testMapCombine :: (Int, Int) -> (Int, Int)
+testMapCombine =
+  ( -- union (right-biased: second map's values win on overlap)
+    testEqual "union disjoint" (sort (keys (union (fromList [("a",1)]) (fromList [("b",2)])))) ["a","b"]
+  . testEqual "union overlap keys" (sort (keys (union (fromList [("a",1),("b",2)]) (fromList [("b",3),("c",4)])))) ["a","b","c"]
+  . testEqual "union overlap val" (lookup "b" (union (fromList [("a",1),("b",2)]) (fromList [("b",99)]))) 99
+  . testEqual "union empty left" (sort (keys (union (fromList ([] :: [(Str, Int)])) (fromList [("a",1)])))) ["a"]
+  . testEqual "union empty right" (sort (keys (union (fromList [("a",1)]) (fromList ([] :: [(Str, Int)]))))) ["a"]
+  -- unionWith
+  . testEqual "unionWith sum" (lookup "a" (unionWith (+) (fromList [("a",1)]) (fromList [("a",2)]))) 3
+  . testEqual "unionWith disjoint" (sort (keys (unionWith (+) (fromList [("a",1)]) (fromList [("b",2)])))) ["a","b"]
+  . testEqual "unionWith disjoint val" (lookup "a" (unionWith (+) (fromList [("a",1)]) (fromList [("b",2)]))) 1
+  -- intersectionWith
+  . testEqual "intersectWith sum" (lookup "a" (intersectionWith (+) (fromList [("a",1),("b",2)]) (fromList [("a",10),("c",30)]))) 11
+  . testEqual "intersectWith keys" (sort (keys (intersectionWith (+) (fromList [("a",1),("b",2)]) (fromList [("a",10),("c",30)])))) ["a"]
+  . testEqual "intersectWith empty" (size (intersectionWith (+) (fromList [("a",1)]) (fromList [("b",2)]))) 0
+  -- difference
+  . testEqual "diff keys" (sort (keys (difference (fromList [("a",1),("b",2),("c",3)]) (fromList [("b",99)])))) ["a","c"]
+  . testEqual "diff none" (sort (keys (difference (fromList [("a",1),("b",2)]) (fromList ([] :: [(Str, Int)]))))) ["a","b"]
+  . testEqual "diff all" (size (difference (fromList [("a",1)]) (fromList [("a",99)]))) 0
+  )
+
+-------------------------------------------------------------------------------
+-- Map With Key / Fold With Key
+
+testMapWithKey :: (Int, Int) -> (Int, Int)
+testMapWithKey =
+  ( -- mapWithKey
+    testEqual "mapWithKey" (lookup "a" (mapWithKey (\k v -> k <> show v) (fromList [("a",1),("b",2)]))) "a1"
+  . testEqual "mapWithKey keys" (sort (keys (mapWithKey (\k v -> v + 1) (fromList [("a",1),("b",2)])))) ["a","b"]
+  . testEqual "mapWithKey empty" (size (mapWithKey (\k v -> v + 1) (fromList ([] :: [(Str, Int)])))) 0
+  -- foldWithKey
+  . testEqual "foldWithKey sum" (foldWithKey (\acc k v -> acc + v) 0 (fromList [("a",1),("b",2),("c",3)])) 6
+  . testEqual "foldWithKey empty" (foldWithKey (\acc k v -> acc + v) 0 (fromList ([] :: [(Str, Int)]))) 0
+  . testEqual "foldWithKey keys" (sort (foldWithKey (\acc k v -> cons k acc) ([] :: [Str]) (fromList [("a",1),("b",2)]))) ["a","b"]
+  . testEqual "foldWithKey concat" (foldWithKey (\acc k v -> acc <> k) "" (fromList [("a",1)])) "a"
+  )
