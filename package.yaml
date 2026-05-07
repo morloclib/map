@@ -1,5 +1,5 @@
 name: map
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/morloclib/map
 synopsis: Map (dictionary) type and operations
 description: Associative container mapping keys to values with lookup, insertion, deletion, and set-theoretic operations.
