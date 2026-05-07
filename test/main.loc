@@ -125,12 +125,12 @@ testMapModify =
 testMapTransform :: (Int, Int) -> (Int, Int)
 testMapTransform =
   ( -- mapValues
-    testEqual "mapValues" (sort (values (mapValues (_ + 10) (fromList [("a",1),("b",2)])))) [11,12]
-  . testEqual "mapValues keys" (sort (keys (mapValues (_ + 1) (fromList [("x",1),("y",2)])))) ["x","y"]
-  . testEqual "mapValues empty" (size (mapValues (_ + 1) (fromList ([] :: [(Str, Int)])))) 0
+    testEqual "mapValues" (sort (values (mapValues (+ 10) (fromList [("a",1),("b",2)])))) [11,12]
+  . testEqual "mapValues keys" (sort (keys (mapValues (+ 1) (fromList [("x",1),("y",2)])))) ["x","y"]
+  . testEqual "mapValues empty" (size (mapValues (+ 1) (fromList ([] :: [(Str, Int)])))) 0
   -- mapKeys
-  . testEqual "mapKeys" (sort (keys (mapKeys (_ <> "x") (fromList [("a",1),("b",2)])))) ["ax","bx"]
-  . testEqual "mapKeys values" (sort (values (mapKeys (_ <> "x") (fromList [("a",1),("b",2)])))) [1,2]
+  . testEqual "mapKeys" (sort (keys (mapKeys (<> "x") (fromList [("a",1),("b",2)])))) ["ax","bx"]
+  . testEqual "mapKeys values" (sort (values (mapKeys (<> "x") (fromList [("a",1),("b",2)])))) [1,2]
   -- filterMap
   . testEqual "filterMap keep" (sort (keys (filterMap (\k v -> v > 1) (fromList [("a",1),("b",2),("c",3)])))) ["b","c"]
   . testEqual "filterMap none" (sort (keys (filterMap (\k v -> v > 9) (fromList [("a",1),("b",2)])))) ([] :: [Str])
