@@ -4,7 +4,7 @@ import root
 
 --' A map with keys of type `a` and values of type `b`
 --' metavar: MAP
-type Map a b
+newtype Map a b
 
 -- Serialization: maps are packed as a pair of parallel lists
 instance Packable ([a], [b]) (Map a b)
