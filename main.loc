@@ -27,8 +27,6 @@ lookup :: a -> Map a b -> ?b
 
 member :: a -> Map a b -> Bool
 
-size :: Map a b -> Int
-
 -- Modify
 ----------
 
