@@ -6,8 +6,8 @@ import root
 --' metavar: MAP
 newtype Map a b
 
--- Serialization: maps are packed as a pair of parallel lists
-instance Packable ([a], [b]) (Map a b)
+-- Serialization: maps are packed as a list of key/value pairs
+instance Packable [(a, b)] (Map a b)
 
 -- Construction
 ----------------
