@@ -2,60 +2,27 @@ module map.test (test)
 
 import map
 import root
+import unittest
 
-type Py => Int = "int"
-type Py => U64 = "int"
-type Py => Str = "str"
-type Py => Real = "float"
-type Py => Bool = "bool"
-type Py => Tuple2 a b = "tuple" a b
-type Py => Tuple3 a b c = "tuple" a b c
-type Py => List a = "list" a
-
--------------------------------------------------------------------------------
--- Test suite functions
-
-source Py from "map-test.py" ("testEqual", "printMsg", "printResult")
-testEqual
-    :: Str -- description of the test
-    -> a
-    -> a
-    -> (Int, Int) -- total number of tests and total fails
-    -> (Int, Int)
-printMsg :: Str -> a -> a
-printResult :: (Int, Int) -> (Int, Int)
-
-testGroup
-    :: Str
-    -> ((Int, Int) -> (Int, Int))
-    -> (Int, Int)
-    -> (Int, Int)
-testGroup msg tests = tests . printMsg msg
-
-passed :: (Int, Int) -> Bool
-passed t = 0 == (.0 t)
-
-test = runTests (0,0)
+test = suite runTests
 
 -------------------------------------------------------------------------------
 -- Test suite
 
-runTests :: (Int, Int) -> Bool
+runTests :: Test
 runTests =
-  ( passed
-  . printResult
-  . testGroup "Map With Key" testMapWithKey
-  . testGroup "Map Combine" testMapCombine
-  . testGroup "Map Transform" testMapTransform
-  . testGroup "Map Modify" testMapModify
-  . testGroup "Map Query" testMapQuery
-  . testGroup "Map Construction" testMapConstruction
+  ( group "Map With Key" testMapWithKey
+  . group "Map Combine" testMapCombine
+  . group "Map Transform" testMapTransform
+  . group "Map Modify" testMapModify
+  . group "Map Query" testMapQuery
+  . group "Map Construction" testMapConstruction
   )
 
 -------------------------------------------------------------------------------
 -- Construction
 
-testMapConstruction :: (Int, Int) -> (Int, Int)
+testMapConstruction :: Test
 testMapConstruction =
   ( -- emptyMap
     testEqual "emptyMap keys" (keys (fromList ([] :: [(Str, Int)]))) ([] :: [Str])
@@ -74,11 +41,15 @@ testMapConstruction =
 -------------------------------------------------------------------------------
 -- Query
 
-testMapQuery :: (Int, Int) -> (Int, Int)
+testMapQuery :: Test
 testMapQuery =
   ( -- lookup
     testEqual "lookup found" (lookup "a" (fromList [("a",1),("b",2)])) 1
   . testEqual "lookup found 2" (lookup "b" (fromList [("a",1),("b",2)])) 2
+  -- lookup of an absent key is the null the signature promises, not a
+  -- raise. See `lookup :: a -> Map a b -> ?b`.
+  . testEqual "lookup missing" (lookup "z" (fromList [("a",1),("b",2)])) (Null :: ?Int)
+  . testEqual "lookup missing empty" (lookup "a" (fromList ([] :: [(Str, Int)]))) (Null :: ?Int)
   -- member
   . testEqual "member found" (member "a" (fromList [("a",1),("b",2)])) True
   . testEqual "member missing" (member "c" (fromList [("a",1),("b",2)])) False
@@ -101,7 +72,7 @@ testMapQuery =
 -------------------------------------------------------------------------------
 -- Modify
 
-testMapModify :: (Int, Int) -> (Int, Int)
+testMapModify :: Test
 testMapModify =
   ( -- insert
     testEqual "insert new" (lookup "c" (insert "c" 3 (fromList [("a",1),("b",2)]))) 3
@@ -123,7 +94,7 @@ testMapModify =
 -------------------------------------------------------------------------------
 -- Transform
 
-testMapTransform :: (Int, Int) -> (Int, Int)
+testMapTransform :: Test
 testMapTransform =
   ( -- mapValues
     testEqual "mapValues" (sort (values (mapValues (+ 10) (fromList [("a",1),("b",2)])))) [11,12]
@@ -142,7 +113,7 @@ testMapTransform =
 -------------------------------------------------------------------------------
 -- Combine
 
-testMapCombine :: (Int, Int) -> (Int, Int)
+testMapCombine :: Test
 testMapCombine =
   ( -- union (right-biased: second map's values win on overlap)
     testEqual "union disjoint" (sort (keys (union (fromList [("a",1)]) (fromList [("b",2)])))) ["a","b"]
@@ -167,7 +138,7 @@ testMapCombine =
 -------------------------------------------------------------------------------
 -- Map With Key / Fold With Key
 
-testMapWithKey :: (Int, Int) -> (Int, Int)
+testMapWithKey :: Test
 testMapWithKey =
   ( -- mapWithKey
     testEqual "mapWithKey" (lookup "a" (mapWithKey (\k v -> k <> show v) (fromList [("a",1),("b",2)]))) "a1"
