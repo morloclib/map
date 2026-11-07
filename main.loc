@@ -64,3 +64,13 @@ mapWithKey :: (a -> b -> c) -> Map a b -> Map a c
 filterMap :: (a -> b -> Bool) -> Map a b -> Map a b
 
 foldWithKey :: (c -> a -> b -> c) -> c -> Map a b -> c
+
+--' Whether two maps hold the same keys with equal values
+equalMap :: Eq b => Map a b -> Map a b -> Bool
+equalMap x y =
+  length (keys x) == length (keys y)
+    && all (\p -> member (.0 p) y && require (lookup (.0 p) y) == .1 p) (toList x)
+
+instance Eq b => Eq (Map a b) where
+  (==) x y = equalMap x y
+  (!=) x y = not (equalMap x y)
